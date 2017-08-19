@@ -1,5 +1,8 @@
-# This is a game based off of this concept:
+# This is a game based off of this concept: 
 https://en.wikipedia.org/wiki/Wireworld
 
-# It's a redo of this:
+# It's a redo of this: 
 https://www.youtube.com/watch?v=4_9d1VFXoLE
+
+# Using this engine: 
+https://github.com/PhoenixGameDevelopmentTeam/GdiApi
