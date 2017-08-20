@@ -20,6 +20,8 @@ namespace WireWorld
         Pen borderColor = new Pen(Color.White, 1f);
         int squareSize = 15;
         WireWorldState selected = WireWorldState.Dead;
+        bool autoRunning = false;
+        float cyclesPerSecond = 3;
 
         Point[] borderLines = new Point[5];
         Point[] mouseLineMarkers = new Point[5];
@@ -31,7 +33,7 @@ namespace WireWorld
             map = new WireWorldMap(width, height);
 
             context = new Context(new Size(1000, 1000), "Fun Time!", false);
-            controlWindow = new Context(new Size(300, 1000), "Controls", false);
+            controlWindow = new Context(new Size(200, 1000), "Controls", false);
 
             borderLines[0] = new Point(0, 0);
             borderLines[1] = new Point(map.Width * squareSize, 0);
@@ -54,14 +56,47 @@ namespace WireWorld
 
             var cycleBtn = new Button()
             {
-                Size = new Size(300, 20),
+                Size = new Size(200, 20),
                 Visible = true,
                 Location = new Point(0,0),
                 Text = "Cycle",
-                Tag = "0.95|0.02",
             };
             cycleBtn.Click += CycleBtn_Click;
+            cycleBtn.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;
             controlWindow.Controls.Add(cycleBtn);
+
+            var autoToggle = new Button()
+            {
+                Size = new Size(200, 20),
+                Visible = true,
+                Location = new Point(0, 25),
+                Text = "Toggle Auto",
+            };
+            autoToggle.Click += AutoToggle_Click;
+            autoToggle.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;
+            controlWindow.Controls.Add(autoToggle);
+
+            var increaseAuto = new Button()
+            {
+                Size = new Size(200, 20),
+                Visible = true,
+                Location = new Point(0, 50),
+                Text = "Increase Auto Speed",
+            };
+            increaseAuto.Click += IncreaseAuto_Click;
+            increaseAuto.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;
+            controlWindow.Controls.Add(increaseAuto);
+
+            var decreaseAuto = new Button()
+            {
+                Size = new Size(200, 20),
+                Visible = true,
+                Location = new Point(0, 75),
+                Text = "Decrease Auto Speed",
+            };
+            decreaseAuto.Click += DecreaseAuto_Click;
+            decreaseAuto.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;
+            controlWindow.Controls.Add(decreaseAuto);
 
             controlWindow.Closing += ControlWindow_Closing;
             controlWindow.Resize += ControlWindow_Resize;
@@ -69,18 +104,13 @@ namespace WireWorld
             context.Begin(false);
         }
 
+        private void DecreaseAuto_Click(object sender, EventArgs e) => cyclesPerSecond *= 0.7f;
+        private void IncreaseAuto_Click(object sender, EventArgs e) => cyclesPerSecond *= 1.3f;
+        private void AutoToggle_Click(object sender, EventArgs e) => autoRunning = !autoRunning;
+
         private void ControlWindow_Resize()
         {
-            foreach (var c in controlWindow.Controls)
-            {
-                if (float.TryParse((c as Control).Tag.ToString().Split('|')[0], out var sizeWidth))
-                {
-                    if (float.TryParse((c as Control).Tag.ToString().Split('|')[1], out var sizeHeight))
-                    {
-                        (c as Control).Size = new Size((int)(controlWindow.Size.Width * sizeWidth), (int)(controlWindow.Size.Height * sizeHeight));
-                    }
-                }
-            }
+
         }
         private void ControlWindow_Closing(FormClosingEventArgs fcea) => fcea.Cancel = true;
         private void CycleBtn_Click(object sender, EventArgs e) => map.Cycle();
@@ -92,17 +122,30 @@ namespace WireWorld
                 case Keys.Space:
                     map.Cycle();
                     break;
+                case Keys.NumPad1:
                 case Keys.D1:
                     selected = WireWorldState.Dead;
                     break;
+                case Keys.NumPad3:
                 case Keys.D3:
                     selected = WireWorldState.Head;
                     break;
+                case Keys.NumPad4:
                 case Keys.D4:
                     selected = WireWorldState.Tail;
                     break;
+                case Keys.NumPad2:
                 case Keys.D2:
                     selected = WireWorldState.Wire;
+                    break;
+                case Keys.A:
+                    autoRunning = !autoRunning;
+                    break;
+                case Keys.OemPeriod:
+                    cyclesPerSecond *= 1.3f;
+                    break;
+                case Keys.Oemcomma:
+                    cyclesPerSecond *= 0.7f;
                     break;
             }
         }
@@ -114,7 +157,6 @@ namespace WireWorld
 
             controlWindow.Begin(true);
         }
-
         public void DrawState(Graphics g, Point p, WireWorldState state)
         {
             switch (state)
@@ -133,7 +175,6 @@ namespace WireWorld
                     break;
             }
         }
-
         public void DrawStateLiteral(Graphics g, Point p, WireWorldState state)
         {
             switch (state)
@@ -153,16 +194,32 @@ namespace WireWorld
             }
         }
 
+        int MilliSinceLastAuto = 0;
+
         public void Render(Graphics graphics, TimeSpan delta)
         {
+            //Auto
+            if (autoRunning)
+            {
+                MilliSinceLastAuto += (int)delta.TotalMilliseconds;
+                if (MilliSinceLastAuto > (int)(1000f / cyclesPerSecond))
+                {
+                    MilliSinceLastAuto = 0;
+                    map.Cycle();
+                }
+            }
+            
+            //Get Framerate
             frameRate.Frame(delta);
 
+            //Set square if mouse clicked
             if (context.MouseClicked)
             {
                 map.SetState(context.MouseLocation.X / squareSize,
                     context.MouseLocation.Y / squareSize, selected);
             }
 
+            //Draw Map
             for (var y = 0; y < map.Height; y++)
             {
                 for (var x = 0; x < map.Width; x++)
@@ -172,28 +229,31 @@ namespace WireWorld
                 }
             }
 
+            //Draw border around map
             graphics.DrawLines(borderColor, borderLines);
 
+            //Draw tile grid
             for (var x = 0; x < context.Size.Width; x += squareSize)
             {
                 graphics.DrawLine(borderColor, x, 0, x, context.Size.Height);
             }
-
             for (var y = 0; y < context.Size.Height; y += squareSize)
             {
                 graphics.DrawLine(borderColor, 0, y, context.Size.Width, y);
             }
 
+            //Cursor tile
             DrawStateLiteral(graphics, context.MouseLocation, selected);
 
+            //Cursor tile border
             for (var i = 0; i < 5; i++)
             {
                 mouseLines[i] = new Point(mouseLineMarkers[i].X + context.MouseLocation.X,
                     mouseLineMarkers[i].Y + context.MouseLocation.Y);
             }
-
             graphics.DrawLines(borderColor, mouseLines);
 
+            //Set title to framerate
             context.Title = "Framerate: " + frameRate.ToString();
         }
     }
