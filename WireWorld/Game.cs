@@ -19,9 +19,13 @@ namespace WireWorld
         SolidBrush blankColor = new SolidBrush(Color.Black);
         Pen borderColor = new Pen(Color.White, 1f);
         int squareSize = 15;
+        int originSquareSize = 15;
         WireWorldState selected = WireWorldState.Dead;
         bool autoRunning = false;
         float cyclesPerSecond = 3;
+
+        int mapWidth = 0;
+        int mapHeight = 0;
 
         Point[] borderLines = new Point[5];
         Point[] mouseLineMarkers = new Point[5];
@@ -29,7 +33,11 @@ namespace WireWorld
 
         public Game(int squareSize, int width, int height)
         {
+            mapWidth = width;
+            mapHeight = height;
+
             this.squareSize = squareSize;
+            originSquareSize = squareSize;
             map = new WireWorldMap(width, height);
 
             context = new Context(new Size(1000, 1000), "Fun Time!", false);
@@ -146,6 +154,13 @@ namespace WireWorld
                     break;
                 case Keys.Oemcomma:
                     cyclesPerSecond *= 0.7f;
+                    break;
+                case Keys.C:
+                    if (kea.Alt)
+                    {
+                        squareSize = originSquareSize;
+                        map = new WireWorldMap(mapWidth, mapHeight);
+                    }
                     break;
             }
         }
