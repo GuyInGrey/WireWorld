@@ -1,8 +1,0 @@
-c:\users\lightuser\documents\visual studio 2017\Projects\WireWorld\WireWorld\obj\Debug\WireWorld.csprojResolveAssemblyReference.cache
-c:\users\lightuser\documents\visual studio 2017\Projects\WireWorld\WireWorld\bin\Debug\WireWorld.exe.config
-c:\users\lightuser\documents\visual studio 2017\Projects\WireWorld\WireWorld\bin\Debug\WireWorld.exe
-c:\users\lightuser\documents\visual studio 2017\Projects\WireWorld\WireWorld\bin\Debug\WireWorld.pdb
-c:\users\lightuser\documents\visual studio 2017\Projects\WireWorld\WireWorld\bin\Debug\GdiApi.dll
-c:\users\lightuser\documents\visual studio 2017\Projects\WireWorld\WireWorld\bin\Debug\GdiApi.pdb
-c:\users\lightuser\documents\visual studio 2017\Projects\WireWorld\WireWorld\obj\Debug\WireWorld.exe
-c:\users\lightuser\documents\visual studio 2017\Projects\WireWorld\WireWorld\obj\Debug\WireWorld.pdb
