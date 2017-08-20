@@ -28,6 +28,7 @@ namespace WireWorld
         bool autoRunning = false;
         float cyclesPerSecond = 3;
         float adjuster = 0.2f;
+        bool selfExiting = false;
 
         int mapWidth = 0;
         int mapHeight = 0;
@@ -63,6 +64,7 @@ namespace WireWorld
             context.Load += Load;
             context.Render += Render;
             context.KeyDown += Context_KeyDown;
+            context.Closing += Context_Closing;
 
             controlWindow.ClearScreen = false;
             controlWindow.ManageFrameDraw = false;
@@ -112,15 +114,42 @@ namespace WireWorld
             controlWindow.Controls.Add(decreaseAuto);
 
             controlWindow.Closing += ControlWindow_Closing;
-            controlWindow.Resize += ControlWindow_Resize;
 
             context.Begin(false);
+        }
+
+        private FormClosingEventArgs Context_Closing(FormClosingEventArgs fcea) => Close(fcea);
+
+        public FormClosingEventArgs Close(FormClosingEventArgs f)
+        {
+            if (selfExiting)
+            {
+                f.Cancel = false;
+                return f;
+            }
+
+            var d = MessageBox.Show("Unsaved changes will be lost.", "Are you sure?", MessageBoxButtons.YesNo, MessageBoxIcon.Warning, MessageBoxDefaultButton.Button2);
+            if (d == DialogResult.Yes)
+            {
+                selfExiting = true;
+                controlWindow.Exit();
+                context.Exit();
+                f.Cancel = false;
+                return f;
+            }
+            else
+            {
+                f.Cancel = true;
+                return f;
+            }
         }
 
         public void SaveMap(WireWorldMap map, string path)
         {
             using (var writer = new StreamWriter(path))
             {
+                writer.WriteLine(map.Width +  "|" + map.Height);
+
                 for (var x = 0; x < map.Width; x++)
                 {
                     for (var y = 0; y < map.Height; y++)
@@ -133,15 +162,31 @@ namespace WireWorld
             }
         }
 
+        public WireWorldMap LoadMap(string path)
+        {
+            var lines = File.ReadAllLines(path);
+            int width = Convert.ToInt16(lines[0].Split('|')[0]);
+            int height = Convert.ToInt16(lines[0].Split('|')[1]);
+            var toReturn = new WireWorldMap(width, height, WireWorldState.Dead);
+
+            for (var i = 1; i < lines.Length; i++)
+            {
+                var str = lines[i];
+                var parts = str.Split('|');
+                var intParts = Array.ConvertAll<string, int>(parts, int.Parse);
+                var x = intParts[0];
+                var y = intParts[1];
+                var id = intParts[2];
+                toReturn.SetState(x, y, (WireWorldState)id);
+            }
+
+            return toReturn;
+        }
+
         private void DecreaseAuto_Click(object sender, EventArgs e) => cyclesPerSecond *= (1 - adjuster);
         private void IncreaseAuto_Click(object sender, EventArgs e) => cyclesPerSecond *= (1 + adjuster);
         private void AutoToggle_Click(object sender, EventArgs e) => autoRunning = !autoRunning;
-
-        private void ControlWindow_Resize()
-        {
-
-        }
-        private void ControlWindow_Closing(FormClosingEventArgs fcea) => fcea.Cancel = true;
+        private FormClosingEventArgs ControlWindow_Closing(FormClosingEventArgs fcea) => Close(fcea);
         private void CycleBtn_Click(object sender, EventArgs e) => map.Cycle();
 
         private void Context_KeyDown(KeyEventArgs kea)
@@ -191,6 +236,35 @@ namespace WireWorld
                     break;
                 case Keys.Oemcomma:
                     cyclesPerSecond *= (1 - adjuster);
+                    break;
+                case Keys.S:
+                    if (kea.Control)
+                    {
+                        var save = new SaveFileDialog()
+                        {
+                            Filter = "Wire Map|*.wiremap",
+                        };
+
+                        if (save.ShowDialog() == DialogResult.OK)
+                        {
+                            SaveMap(map, save.FileName);
+                        }
+                        
+                    }
+                    break;
+                case Keys.O:
+                    if (kea.Control)
+                    {
+                        var open = new OpenFileDialog()
+                        {
+                            Filter = "Wire Map|*.wiremap",
+                        };
+
+                        if (open.ShowDialog() == DialogResult.OK)
+                        {
+                            map = LoadMap(open.FileName);
+                        }
+                    }
                     break;
             }
         }

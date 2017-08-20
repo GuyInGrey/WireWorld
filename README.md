@@ -14,6 +14,9 @@ Alt-2 - Clear Screen Wire
 Alt-3 - Clear Screen Head  
 Alt-4 - Clear Screen Tail  
 
+Control-S - Save Map  
+Control-O - Open Map  
+
 # This is a game based off of this concept: 
 https://en.wikipedia.org/wiki/Wireworld
 

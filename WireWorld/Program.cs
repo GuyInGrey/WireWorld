@@ -8,9 +8,10 @@ namespace WireWorld
 {
     public class Program
     {
+        [STAThread]
         static void Main(string[] args)
         {
-            var g = new Game(15, 50, 50);
+            var g = new Game(15, 2, 2);
         }
     }
 }
