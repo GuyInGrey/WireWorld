@@ -24,7 +24,7 @@ namespace WireWorld
         Pen borderColor = new Pen(Color.White, 1f);
         int squareSize = 15;
         int originSquareSize = 15;
-        WireWorldState selected = WireWorldState.Dead;
+        WireWorldState selected = WireWorldState.Dead;  
         bool autoRunning = false;
         float cyclesPerSecond = 3;
         float adjuster = 0.2f;
