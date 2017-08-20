@@ -9,6 +9,7 @@ namespace WireWorld
     public class Game
     {
         Context context;
+        Context controlWindow;
         FrameRateManager frameRate = new FrameRateManager();
         WireWorldMap map;
 
@@ -29,7 +30,8 @@ namespace WireWorld
             this.squareSize = squareSize;
             map = new WireWorldMap(width, height);
 
-            context = new Context(new Size(1000, 1000), "Fun Time!", true);
+            context = new Context(new Size(1000, 1000), "Fun Time!", false);
+            controlWindow = new Context(new Size(300, 1000), "Controls", false);
 
             borderLines[0] = new Point(0, 0);
             borderLines[1] = new Point(map.Width * squareSize, 0);
@@ -46,8 +48,42 @@ namespace WireWorld
             context.Load += Load;
             context.Render += Render;
             context.KeyDown += Context_KeyDown;
-            context.Begin();
+
+            controlWindow.ClearScreen = false;
+            controlWindow.ManageFrameDraw = false;
+
+            var cycleBtn = new Button()
+            {
+                Size = new Size(300, 20),
+                Visible = true,
+                Location = new Point(0,0),
+                Text = "Cycle",
+                Tag = "0.95|0.02",
+            };
+            cycleBtn.Click += CycleBtn_Click;
+            controlWindow.Controls.Add(cycleBtn);
+
+            controlWindow.Closing += ControlWindow_Closing;
+            controlWindow.Resize += ControlWindow_Resize;
+
+            context.Begin(false);
         }
+
+        private void ControlWindow_Resize()
+        {
+            foreach (var c in controlWindow.Controls)
+            {
+                if (float.TryParse((c as Control).Tag.ToString().Split('|')[0], out var sizeWidth))
+                {
+                    if (float.TryParse((c as Control).Tag.ToString().Split('|')[1], out var sizeHeight))
+                    {
+                        (c as Control).Size = new Size((int)(controlWindow.Size.Width * sizeWidth), (int)(controlWindow.Size.Height * sizeHeight));
+                    }
+                }
+            }
+        }
+        private void ControlWindow_Closing(FormClosingEventArgs fcea) => fcea.Cancel = true;
+        private void CycleBtn_Click(object sender, EventArgs e) => map.Cycle();
 
         private void Context_KeyDown(KeyEventArgs kea)
         {
@@ -75,6 +111,8 @@ namespace WireWorld
         {
             BitmapBuffer.Clear();
             BitmapBuffer.Load(@"assets\");
+
+            controlWindow.Begin(true);
         }
 
         public void DrawState(Graphics g, Point p, WireWorldState state)
