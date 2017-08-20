@@ -14,16 +14,20 @@ namespace WireWorld
         FrameRateManager frameRate = new FrameRateManager();
         WireWorldMap map;
 
-        SolidBrush headColor = new SolidBrush(Color.Blue);
+        ///<COLORS>
+        SolidBrush headColor = new SolidBrush(Color.CornflowerBlue);
         SolidBrush tailColor = new SolidBrush(Color.Red);
         SolidBrush wireColor = new SolidBrush(Color.Yellow);
         SolidBrush blankColor = new SolidBrush(Color.Black);
+        ///<\COLORS>
+
         Pen borderColor = new Pen(Color.White, 1f);
         int squareSize = 15;
         int originSquareSize = 15;
         WireWorldState selected = WireWorldState.Dead;
         bool autoRunning = false;
         float cyclesPerSecond = 3;
+        float adjuster = 0.2f;
 
         int mapWidth = 0;
         int mapHeight = 0;
@@ -129,8 +133,8 @@ namespace WireWorld
             }
         }
 
-        private void DecreaseAuto_Click(object sender, EventArgs e) => cyclesPerSecond *= 0.7f;
-        private void IncreaseAuto_Click(object sender, EventArgs e) => cyclesPerSecond *= 1.3f;
+        private void DecreaseAuto_Click(object sender, EventArgs e) => cyclesPerSecond *= (1 - adjuster);
+        private void IncreaseAuto_Click(object sender, EventArgs e) => cyclesPerSecond *= (1 + adjuster);
         private void AutoToggle_Click(object sender, EventArgs e) => autoRunning = !autoRunning;
 
         private void ControlWindow_Resize()
@@ -183,10 +187,10 @@ namespace WireWorld
                     autoRunning = !autoRunning;
                     break;
                 case Keys.OemPeriod:
-                    cyclesPerSecond *= 1.3f;
+                    cyclesPerSecond *= (1 + adjuster);
                     break;
                 case Keys.Oemcomma:
-                    cyclesPerSecond *= 0.7f;
+                    cyclesPerSecond *= (1 - adjuster);
                     break;
             }
         }
