@@ -7,6 +7,7 @@ Space - Cycle (Generation)
 A - Toggle Auto  
 < - Decrease Auto Speed  
 \> - Increase Auto Speed  
+Alt-C - Clear Screen
 
 # This is a game based off of this concept: 
 https://en.wikipedia.org/wiki/Wireworld
