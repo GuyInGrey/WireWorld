@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Drawing;
+using System.IO;
 using System.Windows.Forms;
 
 using GdiApi;
@@ -38,7 +39,7 @@ namespace WireWorld
 
             this.squareSize = squareSize;
             originSquareSize = squareSize;
-            map = new WireWorldMap(width, height);
+            map = new WireWorldMap(width, height, WireWorldState.Dead);
 
             context = new Context(new Size(1000, 1000), "Fun Time!", false);
             controlWindow = new Context(new Size(200, 1000), "Controls", false);
@@ -112,6 +113,22 @@ namespace WireWorld
             context.Begin(false);
         }
 
+        public void SaveMap(WireWorldMap map, string path)
+        {
+            using (var writer = new StreamWriter(path))
+            {
+                for (var x = 0; x < map.Width; x++)
+                {
+                    for (var y = 0; y < map.Height; y++)
+                    {
+                        var id = (int)map[x, y];
+                        var final = x + "|" + y + "|" + id;
+                        writer.WriteLine(final);
+                    }
+                }
+            }
+        }
+
         private void DecreaseAuto_Click(object sender, EventArgs e) => cyclesPerSecond *= 0.7f;
         private void IncreaseAuto_Click(object sender, EventArgs e) => cyclesPerSecond *= 1.3f;
         private void AutoToggle_Click(object sender, EventArgs e) => autoRunning = !autoRunning;
@@ -133,18 +150,34 @@ namespace WireWorld
                 case Keys.NumPad1:
                 case Keys.D1:
                     selected = WireWorldState.Dead;
+                    if (kea.Alt)
+                    {
+                        Reset(WireWorldState.Dead);
+                    }
                     break;
                 case Keys.NumPad3:
                 case Keys.D3:
                     selected = WireWorldState.Head;
+                    if (kea.Alt)
+                    {
+                        Reset(WireWorldState.Head);
+                    }
                     break;
                 case Keys.NumPad4:
                 case Keys.D4:
                     selected = WireWorldState.Tail;
+                    if (kea.Alt)
+                    {
+                        Reset(WireWorldState.Tail);
+                    }
                     break;
                 case Keys.NumPad2:
                 case Keys.D2:
                     selected = WireWorldState.Wire;
+                    if (kea.Alt)
+                    {
+                        Reset(WireWorldState.Wire);
+                    }
                     break;
                 case Keys.A:
                     autoRunning = !autoRunning;
@@ -155,16 +188,14 @@ namespace WireWorld
                 case Keys.Oemcomma:
                     cyclesPerSecond *= 0.7f;
                     break;
-                case Keys.C:
-                    if (kea.Alt)
-                    {
-                        squareSize = originSquareSize;
-                        map = new WireWorldMap(mapWidth, mapHeight);
-                    }
-                    break;
             }
         }
 
+        public void Reset(WireWorldState state)
+        {
+            squareSize = originSquareSize;
+            map = new WireWorldMap(mapWidth, mapHeight, state);
+        }
         public void Load()
         {
             BitmapBuffer.Clear();

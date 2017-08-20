@@ -12,8 +12,7 @@ namespace WireWorld
 
         Point[] surrounding;
 
-        public WireWorldMap(Size size) : this(size.Width, size.Height) { }
-        public WireWorldMap(int width, int height)
+        public WireWorldMap(int width, int height, WireWorldState defaultState)
         {
             surrounding = new Point[8]
             {
@@ -30,6 +29,20 @@ namespace WireWorld
             Map = new WireWorldState[width, height];
             Width = width;
             Height = height;
+
+            for (var x = 0; x < width; x++)
+            {
+                for (var y = 0; y < height; y++)
+                {
+                    this[x, y] = defaultState;
+                }
+            }
+        }
+
+        public WireWorldState this[int x, int y]
+        {
+            get => Map[x,y];
+            set => Map[x, y] = value;
         }
 
         public void Cycle()
