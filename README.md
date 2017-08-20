@@ -6,7 +6,7 @@ Space - Cycle (Generation)
 4 - Tail  
 A - Toggle Auto  
 < - Decrease Auto Speed  
-> - Increase Auto Speed  
+\> - Increase Auto Speed  
 
 # This is a game based off of this concept: 
 https://en.wikipedia.org/wiki/Wireworld
