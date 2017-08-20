@@ -1,12 +1,12 @@
 # Controls: 
 Space - Cycle (Generation)  
-1- Dead  
-2- Wire  
-3- Head  
-4- Tail  
-A- Toggle Auto  
-<- Decrease Auto Speed  
->- Increase Auto Speed  
+1 - Dead  
+2 - Wire  
+3 - Head  
+4 - Tail  
+A - Toggle Auto  
+< - Decrease Auto Speed  
+\> - Increase Auto Speed  
 
 # This is a game based off of this concept: 
 https://en.wikipedia.org/wiki/Wireworld
