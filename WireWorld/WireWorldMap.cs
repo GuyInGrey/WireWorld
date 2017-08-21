@@ -5,10 +5,18 @@ namespace WireWorld
 {
     public class WireWorldMap
     {
-        private WireWorldState[,] Map;
+        private WireWorldState[,] map;
         private WireWorldState[,] tempMap;
         public int Width { get; private set; }
         public int Height { get; private set; }
+
+        public int BootingSquareSize { get; set; } = 15;
+        public int SquareSize { get; set; } = 15;
+
+        public SolidBrush HeadColor { get; set; } = new SolidBrush(Color.CornflowerBlue);
+        public SolidBrush TailColor { get; set; } = new SolidBrush(Color.White);
+        public SolidBrush WireColor { get; set; } = new SolidBrush(Color.LightGray);
+        public SolidBrush BlankColor { get; set; } = new SolidBrush(Color.Black);
 
         Point[] surrounding;
 
@@ -26,7 +34,7 @@ namespace WireWorld
                 new Point(1, 1),
             };
 
-            Map = new WireWorldState[width, height];
+            map = new WireWorldState[width, height];
             Width = width;
             Height = height;
 
@@ -41,13 +49,13 @@ namespace WireWorld
 
         public WireWorldState this[int x, int y]
         {
-            get => Map[x,y];
-            set => Map[x, y] = value;
+            get => map[x,y];
+            set => map[x, y] = value;
         }
 
         public void Cycle()
         {
-            if (Map != null)
+            if (map != null)
             {
                 tempMap = new WireWorldState[Width, Height];
 
@@ -61,11 +69,11 @@ namespace WireWorld
                             var _x = x + surrounding[i].X;
                             var _y = y + surrounding[i].Y;
 
-                            if (_x > 0 && _x < Map.GetUpperBound(0) + 1)
+                            if (_x >= 0 && _x < map.GetUpperBound(0) + 1)
                             {
-                                if (_y > 0 && _y < Map.GetUpperBound(1) + 1)
+                                if (_y >= 0 && _y < map.GetUpperBound(1) + 1)
                                 {
-                                    if (Map[_x, _y] == WireWorldState.Head)
+                                    if (map[_x, _y] == WireWorldState.Head)
                                     {
                                         headCnt++;
                                     }
@@ -73,26 +81,13 @@ namespace WireWorld
                             }
                         }
 
-                        tempMap[x, y] = TileCycle(headCnt, Map[x, y]);
+                        tempMap[x, y] = TileCycle(headCnt, map[x, y]);
                     }
                 }
 
-                Map = tempMap;
+                map = tempMap;
             }
         }
-
-        public void SetState(int x, int y, WireWorldState state)
-        {
-            try
-            {
-                Map[x, y] = state;
-            }
-            catch
-            {
-
-            }
-        }
-        public WireWorldState GetState(Point point) => Map[point.X, point.Y];
 
         public WireWorldState TileCycle(int headCnt, WireWorldState currentState)
         {
@@ -125,6 +120,44 @@ namespace WireWorld
             }
 
             return currentState;
+        }
+
+        public void SetState(int x, int y, WireWorldState state)
+        {
+            try
+            {
+                map[x, y] = state;
+            }
+            catch
+            {
+
+            }
+        }
+        public WireWorldState GetState(Point point) => map[point.X, point.Y];
+
+        public void DrawState(Graphics g, Point p, WireWorldState state, bool literal)
+        {
+            var toUse = new Rectangle(p.X, p.Y, SquareSize, SquareSize);
+            if (!literal)
+            {
+                toUse = new Rectangle(p.X * SquareSize, p.Y * SquareSize, SquareSize, SquareSize);
+            }
+
+            switch (state)
+            {
+                case WireWorldState.Head:
+                    g.FillRectangle(HeadColor, toUse);
+                    break;
+                case WireWorldState.Tail:
+                    g.FillRectangle(TailColor, toUse);
+                    break;
+                case WireWorldState.Wire:
+                    g.FillRectangle(WireColor, toUse);
+                    break;
+                case WireWorldState.Dead:
+                    g.FillRectangle(BlankColor, toUse);
+                    break;
+            }
         }
     }
 }

@@ -11,7 +11,7 @@ namespace WireWorld
         [STAThread]
         static void Main(string[] args)
         {
-            var g = new Game(15, 2, 2);
+            var g = new Game(20, 50, 50);
         }
     }
 }

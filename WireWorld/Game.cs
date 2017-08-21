@@ -14,16 +14,7 @@ namespace WireWorld
         FrameRateManager frameRate = new FrameRateManager();
         WireWorldMap map;
 
-        ///<COLORS>
-        SolidBrush headColor = new SolidBrush(Color.CornflowerBlue);
-        SolidBrush tailColor = new SolidBrush(Color.Red);
-        SolidBrush wireColor = new SolidBrush(Color.Yellow);
-        SolidBrush blankColor = new SolidBrush(Color.Black);
-        ///<\COLORS>
-
         Pen borderColor = new Pen(Color.White, 1f);
-        int squareSize = 15;
-        int originSquareSize = 15;
         WireWorldState selected = WireWorldState.Dead;  
         bool autoRunning = false;
         float cyclesPerSecond = 3;
@@ -42,9 +33,11 @@ namespace WireWorld
             mapWidth = width;
             mapHeight = height;
 
-            this.squareSize = squareSize;
-            originSquareSize = squareSize;
-            map = new WireWorldMap(width, height, WireWorldState.Dead);
+            map = new WireWorldMap(width, height, WireWorldState.Dead)
+            {
+                SquareSize = squareSize,
+                BootingSquareSize = squareSize
+            };
 
             context = new Context(new Size(1000, 1000), "Fun Time!", false);
             controlWindow = new Context(new Size(200, 1000), "Controls", false);
@@ -271,8 +264,12 @@ namespace WireWorld
 
         public void Reset(WireWorldState state)
         {
-            squareSize = originSquareSize;
-            map = new WireWorldMap(mapWidth, mapHeight, state);
+            var sizeToUse = map.BootingSquareSize;
+            map = new WireWorldMap(mapWidth, mapHeight, state)
+            {
+                BootingSquareSize = sizeToUse,
+                SquareSize = sizeToUse
+            };
         }
         public void Load()
         {
@@ -280,42 +277,6 @@ namespace WireWorld
             BitmapBuffer.Load(@"assets\");
 
             controlWindow.Begin(true);
-        }
-        public void DrawState(Graphics g, Point p, WireWorldState state)
-        {
-            switch (state)
-            {
-                case WireWorldState.Head:
-                    g.FillRectangle(headColor, new Rectangle(p.X * squareSize, p.Y * squareSize, squareSize, squareSize));
-                    break;
-                case WireWorldState.Tail:
-                    g.FillRectangle(tailColor, new Rectangle(p.X * squareSize, p.Y * squareSize, squareSize, squareSize));
-                    break;
-                case WireWorldState.Wire:
-                    g.FillRectangle(wireColor, new Rectangle(p.X * squareSize, p.Y * squareSize, squareSize, squareSize));
-                    break;
-                case WireWorldState.Dead:
-                    g.FillRectangle(blankColor, new Rectangle(p.X * squareSize, p.Y * squareSize, squareSize, squareSize));
-                    break;
-            }
-        }
-        public void DrawStateLiteral(Graphics g, Point p, WireWorldState state)
-        {
-            switch (state)
-            {
-                case WireWorldState.Head:
-                    g.FillRectangle(headColor, new Rectangle(p.X, p.Y, squareSize, squareSize));
-                    break;
-                case WireWorldState.Tail:
-                    g.FillRectangle(tailColor, new Rectangle(p.X, p.Y, squareSize, squareSize));
-                    break;
-                case WireWorldState.Wire:
-                    g.FillRectangle(wireColor, new Rectangle(p.X, p.Y, squareSize, squareSize));
-                    break;
-                case WireWorldState.Dead:
-                    g.FillRectangle(blankColor, new Rectangle(p.X, p.Y, squareSize, squareSize));
-                    break;
-            }
         }
 
         int MilliSinceLastAuto = 0;
@@ -339,8 +300,8 @@ namespace WireWorld
             //Set square if mouse clicked
             if (context.MouseClicked)
             {
-                map.SetState(context.MouseLocation.X / squareSize,
-                    context.MouseLocation.Y / squareSize, selected);
+                map.SetState(context.MouseLocation.X / map.SquareSize,
+                    context.MouseLocation.Y / map.SquareSize, selected);
             }
 
             //Draw Map
@@ -349,25 +310,25 @@ namespace WireWorld
                 for (var x = 0; x < map.Width; x++)
                 {
                     var state = map.GetState(new Point(x, y));
-                    DrawState(graphics, new Point(x, y), state);
+                    map.DrawState(graphics, new Point(x, y), state, false);
                 }
             }
-
+            
             //Draw border around map
             graphics.DrawLines(borderColor, borderLines);
 
             //Draw tile grid
-            for (var x = 0; x < context.Size.Width; x += squareSize)
+            for (var x = 0; x < context.Size.Width; x += map.SquareSize)
             {
                 graphics.DrawLine(borderColor, x, 0, x, context.Size.Height);
             }
-            for (var y = 0; y < context.Size.Height; y += squareSize)
+            for (var y = 0; y < context.Size.Height; y += map.SquareSize)
             {
                 graphics.DrawLine(borderColor, 0, y, context.Size.Width, y);
             }
 
             //Cursor tile
-            DrawStateLiteral(graphics, context.MouseLocation, selected);
+            map.DrawState(graphics, context.MouseLocation, selected, true);
 
             //Cursor tile border
             for (var i = 0; i < 5; i++)
