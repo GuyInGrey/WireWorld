@@ -5,19 +5,29 @@ namespace WireWorld
 {
     public class WireWorldMap
     {
+        //Base Map
         private WireWorldState[,] map;
         private WireWorldState[,] tempMap;
         public int Width { get; private set; }
         public int Height { get; private set; }
 
+        //Square Size
         public int BootingSquareSize { get; set; } = 15;
         public int SquareSize { get; set; } = 15;
 
+        //Colors
         public SolidBrush HeadColor { get; set; } = new SolidBrush(Color.CornflowerBlue);
         public SolidBrush TailColor { get; set; } = new SolidBrush(Color.Red);
         public SolidBrush WireColor { get; set; } = new SolidBrush(Color.Yellow);
         public SolidBrush BlankColor { get; set; } = new SolidBrush(Color.Black);
+        public Pen GridColor { get; set; } = new Pen(Color.Gray);
 
+        //Auto Cycler
+        public bool AutoCycling { get; set; } = false;
+        public float AutoCyclesPerSecond { get; set; } = 3;
+        private int MilliSinceLastAuto { get; set; } = 0;
+
+        //Surrounding Tiles
         Point[] surrounding;
 
         public WireWorldMap(int width, int height, WireWorldState defaultState)
@@ -63,7 +73,7 @@ namespace WireWorld
                 {
                     for (var x = 0; x < Width; x++)
                     {
-                        switch (map[x,y])
+                        switch (this[x,y])
                         {
                             case WireWorldState.Dead:
                                 continue;
@@ -84,7 +94,7 @@ namespace WireWorld
                                     {
                                         if (_y >= 0 && _y < map.GetUpperBound(1) + 1)
                                         {
-                                            if (map[_x, _y] == WireWorldState.Head)
+                                            if (this[_x, _y] == WireWorldState.Head)
                                             {
                                                 headCnt++;
                                             }
@@ -153,6 +163,41 @@ namespace WireWorld
                 case WireWorldState.Dead:
                     g.FillRectangle(BlankColor, toUse);
                     break;
+            }
+        }
+
+        public void Frame(Graphics g, TimeSpan delta)
+        {
+            if (AutoCycling)
+            {
+                MilliSinceLastAuto += (int)delta.TotalMilliseconds;
+                if (MilliSinceLastAuto > (int)(1000f / AutoCyclesPerSecond))
+                {
+                    MilliSinceLastAuto = 0;
+                    Cycle();
+                }
+            }
+
+            for (var y = 0; y < Height; y++)
+            {
+                for (var x = 0; x < Width; x++)
+                {
+                    var state = GetState(new Point(x, y));
+                    DrawState(g, new Point(x, y), state, StateDrawMode.Tile);
+                }
+            }
+
+            //Draw tile grid
+            var width = (map.GetUpperBound(0) + 1) * SquareSize;
+            var height = (map.GetUpperBound(1) + 1) * SquareSize;
+
+            for (var x = 0; x < width; x += SquareSize)
+            {
+                g.DrawLine(GridColor, x, 0, x, height);
+            }
+            for (var y = 0; y < height; y += SquareSize)
+            {
+                g.DrawLine(GridColor, 0, y, width, y);
             }
         }
     }
