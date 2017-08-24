@@ -274,7 +274,7 @@ namespace WireWorld
         public void Load()
         {
             BitmapBuffer.Clear();
-            BitmapBuffer.Load(@"assets\");
+            BitmapBuffer.Load(@"Assets\");
 
             controlWindow.Begin(true);
         }
@@ -310,7 +310,7 @@ namespace WireWorld
                 for (var x = 0; x < map.Width; x++)
                 {
                     var state = map.GetState(new Point(x, y));
-                    map.DrawState(graphics, new Point(x, y), state, false);
+                    map.DrawState(graphics, new Point(x, y), state, StateDrawMode.Tile);
                 }
             }
             
@@ -328,15 +328,39 @@ namespace WireWorld
             }
 
             //Cursor tile
-            map.DrawState(graphics, context.MouseLocation, selected, true);
+            graphics.DrawRectangle(new Pen(Color.White, 5f), new Rectangle(
+                context.MouseLocation.X / map.SquareSize * map.SquareSize,
+                context.MouseLocation.Y / map.SquareSize * map.SquareSize,
+                map.SquareSize,
+                map.SquareSize));
 
-            //Cursor tile border
-            for (var i = 0; i < 5; i++)
+            //graphics.DrawString("Selected Tile Type: " + selected.ToString(), new Font("Times New Roman", 15.0f), Brushes.Orange, new Point(12,12));
+
+            graphics.FillRectangle(Brushes.Orange, new Rectangle(0,0,100,50));
+            graphics.FillRectangle(map.BlankColor, new Rectangle(0, 1, 25, 25));
+            graphics.FillRectangle(map.WireColor, new Rectangle(25, 1, 25, 25));
+            graphics.FillRectangle(map.HeadColor, new Rectangle(50, 1, 25, 25));
+            graphics.FillRectangle(map.TailColor, new Rectangle(75, 1, 25, 25));
+
+            var rec = Rectangle.Empty;
+
+            switch (selected)
             {
-                mouseLines[i] = new Point(mouseLineMarkers[i].X + context.MouseLocation.X,
-                    mouseLineMarkers[i].Y + context.MouseLocation.Y);
+                case WireWorldState.Dead:
+                    rec = new Rectangle(0, 25, 25, 25);
+                    break;
+                case WireWorldState.Wire:
+                    rec = new Rectangle(25, 25, 25, 25);
+                    break;
+                case WireWorldState.Head:
+                    rec = new Rectangle(50, 25, 25, 25);
+                    break;
+                case WireWorldState.Tail:
+                    rec = new Rectangle(75, 25, 25, 25);
+                    break;
             }
-            graphics.DrawLines(borderColor, mouseLines);
+            
+            graphics.DrawBitmap(0, rec);
 
             //Set title to framerate
             context.Title = "Framerate: " + frameRate.ToString();

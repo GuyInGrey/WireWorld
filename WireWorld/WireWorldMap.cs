@@ -14,8 +14,8 @@ namespace WireWorld
         public int SquareSize { get; set; } = 15;
 
         public SolidBrush HeadColor { get; set; } = new SolidBrush(Color.CornflowerBlue);
-        public SolidBrush TailColor { get; set; } = new SolidBrush(Color.White);
-        public SolidBrush WireColor { get; set; } = new SolidBrush(Color.LightGray);
+        public SolidBrush TailColor { get; set; } = new SolidBrush(Color.Red);
+        public SolidBrush WireColor { get; set; } = new SolidBrush(Color.Yellow);
         public SolidBrush BlankColor { get; set; } = new SolidBrush(Color.Black);
 
         Point[] surrounding;
@@ -63,63 +63,50 @@ namespace WireWorld
                 {
                     for (var x = 0; x < Width; x++)
                     {
-                        var headCnt = 0;
-                        for (var i = 0; i < 8; i++)
+                        switch (map[x,y])
                         {
-                            var _x = x + surrounding[i].X;
-                            var _y = y + surrounding[i].Y;
-
-                            if (_x >= 0 && _x < map.GetUpperBound(0) + 1)
-                            {
-                                if (_y >= 0 && _y < map.GetUpperBound(1) + 1)
+                            case WireWorldState.Dead:
+                                continue;
+                            case WireWorldState.Head:
+                                tempMap[x, y] = WireWorldState.Tail;
+                                continue;
+                            case WireWorldState.Tail:
+                                tempMap[x, y] = WireWorldState.Wire;
+                                continue;
+                            case WireWorldState.Wire:
+                                var headCnt = 0;
+                                for (var i = 0; i < 8; i++)
                                 {
-                                    if (map[_x, _y] == WireWorldState.Head)
+                                    var _x = x + surrounding[i].X;
+                                    var _y = y + surrounding[i].Y;
+
+                                    if (_x >= 0 && _x < map.GetUpperBound(0) + 1)
                                     {
-                                        headCnt++;
+                                        if (_y >= 0 && _y < map.GetUpperBound(1) + 1)
+                                        {
+                                            if (map[_x, _y] == WireWorldState.Head)
+                                            {
+                                                headCnt++;
+                                            }
+                                        }
                                     }
                                 }
-                            }
-                        }
 
-                        tempMap[x, y] = TileCycle(headCnt, map[x, y]);
+                                if (headCnt == 1 || headCnt == 2)
+                                {
+                                    tempMap[x, y] = WireWorldState.Head;
+                                }
+                                else
+                                {
+                                    tempMap[x, y] = WireWorldState.Wire;
+                                }
+                                continue;
+                        }
                     }
                 }
 
                 map = tempMap;
             }
-        }
-
-        public WireWorldState TileCycle(int headCnt, WireWorldState currentState)
-        {
-
-            if (currentState == WireWorldState.Dead)
-            {
-                return WireWorldState.Dead;
-            }
-
-            if (currentState == WireWorldState.Head)
-            {
-                return WireWorldState.Tail;
-            }
-
-            if (currentState == WireWorldState.Tail)
-            {
-                return WireWorldState.Wire;
-            }
-
-            if (currentState == WireWorldState.Wire)
-            {
-                if (headCnt == 1 || headCnt == 2)
-                {
-                    return WireWorldState.Head;
-                }
-                else
-                {
-                    return WireWorldState.Wire;
-                }
-            }
-
-            return currentState;
         }
 
         public void SetState(int x, int y, WireWorldState state)
@@ -135,12 +122,21 @@ namespace WireWorld
         }
         public WireWorldState GetState(Point point) => map[point.X, point.Y];
 
-        public void DrawState(Graphics g, Point p, WireWorldState state, bool literal)
+        public void DrawState(Graphics g, Point location, WireWorldState state, StateDrawMode drawMode)
         {
-            var toUse = new Rectangle(p.X, p.Y, SquareSize, SquareSize);
-            if (!literal)
+            var toUse = new Rectangle();
+
+            if (drawMode == StateDrawMode.Literal)
             {
-                toUse = new Rectangle(p.X * SquareSize, p.Y * SquareSize, SquareSize, SquareSize);
+                toUse = new Rectangle(location.X, location.Y, SquareSize, SquareSize);
+            }
+            else if (drawMode == StateDrawMode.Tile)
+            {
+                toUse = new Rectangle(location.X * SquareSize, location.Y * SquareSize, SquareSize, SquareSize);
+            }
+            else if (drawMode == StateDrawMode.LiteralMatched)
+            {
+                toUse = new Rectangle((location.X/SquareSize) * SquareSize, (location.Y / SquareSize) * SquareSize, SquareSize, SquareSize);
             }
 
             switch (state)
@@ -159,5 +155,18 @@ namespace WireWorld
                     break;
             }
         }
+    }
+
+    public enum StateDrawMode
+    {
+        Tile,
+        Literal,
+        LiteralMatched,
+    }
+
+    public enum ColorDrawMode
+    {
+        AlwaysGray,
+        StateMatch,
     }
 }
