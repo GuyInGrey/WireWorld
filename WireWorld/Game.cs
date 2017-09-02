@@ -85,6 +85,10 @@ namespace WireWorld
                     for (var y = 0; y < map.Height; y++)
                     {
                         var id = (int)map[x, y];
+                        if (map[x,y] == WireWorldState.Dead)
+                        {
+                            continue;
+                        }
                         var final = x + "|" + y + "|" + id;
                         writer.WriteLine(final);
                     }
@@ -97,17 +101,28 @@ namespace WireWorld
             var lines = File.ReadAllLines(path);
             int width = Convert.ToInt16(lines[0].Split('|')[0]);
             int height = Convert.ToInt16(lines[0].Split('|')[1]);
-            var toReturn = new WireWorldMap(width, height, WireWorldState.Dead);
+            var toReturn = new WireWorldMap(width, height, WireWorldState.Dead)
+            {
+                BootingSquareSize = map.BootingSquareSize,
+                SquareSize = map.SquareSize
+            };
 
             for (var i = 1; i < lines.Length; i++)
             {
-                var str = lines[i];
-                var parts = str.Split('|');
-                var intParts = Array.ConvertAll<string, int>(parts, int.Parse);
-                var x = intParts[0];
-                var y = intParts[1];
-                var id = intParts[2];
-                toReturn.SetState(x, y, (WireWorldState)id);
+                try
+                {
+                    var str = lines[i];
+                    var parts = str.Split('|');
+                    var intParts = Array.ConvertAll<string, int>(parts, int.Parse);
+                    var x = intParts[0];
+                    var y = intParts[1];
+                    var id = intParts[2];
+                    toReturn.SetState(x, y, (WireWorldState)id);
+                }
+                catch
+                {
+
+                }
             }
 
             return toReturn;
